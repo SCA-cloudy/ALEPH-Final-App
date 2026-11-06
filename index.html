@@ -676,7 +676,7 @@ textarea::placeholder{color:#62786e;font-weight:400}
       msg.textContent = everydayNote;
     } else if (keys.length === 0) {
       msg.style.color = 'var(--cherry)';
-      msg.textContent = '커피 맛을 뜻하는 단어를 찾지 못했습니다. "상큼한", "쓴 건 싫어요"처럼 적거나 2번에서 고르세요.' + clearedNote;
+      msg.textContent = '이 표현은 앱이 알아듣지 못했어요. 그 커피를 떠올리며 2번의 다섯 가지 질문에 답해 보세요.' + clearedNote;
     } else {
       var names = L.ELEMENTS.filter(function (e) { return found[e.key]; }).map(function (e) { return e.name; });
       msg.style.color = 'var(--pen)';
