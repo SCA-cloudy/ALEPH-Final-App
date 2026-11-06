@@ -53,6 +53,7 @@ textarea::placeholder{color:#62786e;font-weight:400}
 .btn:hover{background:var(--ink);border-color:var(--ink)}
 .btn[disabled]{background:#dfe7e1;border-color:#dfe7e1;color:#51665c;cursor:not-allowed}
 .link-btn{appearance:none;cursor:pointer;background:none;border:0;padding:2px 0;color:var(--form);font:500 .92rem/1.5 var(--sans);text-decoration:underline;text-underline-offset:3px;text-align:left}
+.key-hint{font-size:.88rem;color:var(--muted)}
 .examples{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;margin-top:10px;font-size:.92rem;color:var(--muted)}
 .read-msg{min-height:1.6em;margin-top:8px;font-size:.94rem;font-weight:500}
 .private{margin-top:4px;font-size:.86rem;color:var(--muted)}
@@ -149,6 +150,7 @@ textarea::placeholder{color:#62786e;font-weight:400}
         <textarea id="mine" maxlength="500" aria-label="내 커피 취향" placeholder="예: 쓴 건 싫고 상큼한 커피가 좋아요"></textarea>
         <div class="read-row">
           <button class="btn" id="read" type="button">내 말 읽기</button>
+          <span class="key-hint">Enter를 눌러도 읽습니다. 줄을 바꾸려면 Shift+Enter</span>
         </div>
         <div class="examples"><span>예시 넣기</span>
           <button class="link-btn" type="button" data-example="쓴 건 싫고 상큼한 커피가 좋아요">쓴 건 싫고 상큼한 커피</button>
@@ -638,9 +640,17 @@ textarea::placeholder{color:#62786e;font-weight:400}
   function readMine() {
     var text = $('mine').value;
     var msg = $('readMsg');
+    /* 앞서 내 말에서 읽어 둔 답은 지우고 새로 읽는다. 2번에서 직접 고른 답은 남긴다. */
+    var cleared = Object.keys(sources);
+    cleared.forEach(function (k) {
+      delete picks[k];
+      delete sources[k];
+    });
+    var clearedNote = cleared.length ? ' 앞서 읽어 둔 답은 지웠고, 2번에서 직접 고른 답은 그대로 두었습니다.' : '';
     if (!text.trim()) {
       msg.style.color = 'var(--cherry)';
-      msg.textContent = '적은 내용이 없습니다. 한 단어만 적거나 2번에서 바로 고르세요.';
+      msg.textContent = '적은 내용이 없습니다. 한 단어만 적거나 2번에서 바로 고르세요.' + clearedNote;
+      render();
       return;
     }
     var found = L.readTaste(text);
@@ -666,7 +676,7 @@ textarea::placeholder{color:#62786e;font-weight:400}
       msg.textContent = everydayNote;
     } else if (keys.length === 0) {
       msg.style.color = 'var(--cherry)';
-      msg.textContent = '커피 맛을 뜻하는 단어를 찾지 못했습니다. "상큼한", "쓴 건 싫어요"처럼 적거나 2번에서 고르세요.';
+      msg.textContent = '커피 맛을 뜻하는 단어를 찾지 못했습니다. "상큼한", "쓴 건 싫어요"처럼 적거나 2번에서 고르세요.' + clearedNote;
     } else {
       var names = L.ELEMENTS.filter(function (e) { return found[e.key]; }).map(function (e) { return e.name; });
       msg.style.color = 'var(--pen)';
@@ -705,6 +715,12 @@ textarea::placeholder{color:#62786e;font-weight:400}
   }
 
   $('read').addEventListener('click', readMine);
+  /* Enter로도 읽는다. 줄 바꿈은 Shift+Enter. 한글 조합 중의 Enter는 무시해 두 번 읽지 않게 한다. */
+  $('mine').addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' || ev.shiftKey || ev.isComposing || ev.keyCode === 229) return;
+    ev.preventDefault();
+    readMine();
+  });
   document.querySelectorAll('[data-example]').forEach(function (b) {
     b.addEventListener('click', function () {
       $('mine').value = b.getAttribute('data-example');
